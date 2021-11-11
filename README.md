@@ -192,6 +192,21 @@ modules.
 
 ### Module Wrapper
 
+Before a module's code is executed, Node.js wraps it within a function wrapper
+that looks like this.
+
+```js
+;(function (exports, require, module, __filename, __dirname) {
+    // Module code goes here.
+})
+```
+
+-   This is to prevent any variables/declarations outside of functions from leaking
+    into the global object.
+
+-   Additionally it provides users access to global-looking variables such as
+    `module` and `exports`
+
 ### Compiled Node Modules
 
 > **TODO Talk about .node files.**
