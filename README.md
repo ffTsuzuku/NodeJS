@@ -175,6 +175,23 @@ directory and repeat the process until it reaches the root directory and fails.
 This is useful because it allows projects to localize dependencies for sub
 modules, which can be then imported in independently from the main library.
 
+### Global modules
+
+If the `NODE_PATH` environment is set to a colon delimited list of absolute paths,
+then Node.js will look for modules in those locations. Note on `Windows`
+`NODE_PATH` is delimited by seimicolons instead of colons.
+
+The following is a list of Global locations also searched for Node.js.
+
+1. `$HOME/.node_modules`
+2. `$HOME/.node_libraries`
+3. `$PREFIX/lib/node`
+
+The use of global module is mostly discouraged, and you should stick with local
+modules.
+
+### Module Wrapper
+
 ### Compiled Node Modules
 
 > **TODO Talk about .node files.**
