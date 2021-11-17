@@ -210,3 +210,18 @@ that looks like this.
 ### Compiled Node Modules
 
 > **TODO Talk about .node files.**
+
+# Where does NPM install packages?
+
+NPM allows users to install packages either `locally` or `globally`. The default
+installation type is local, a location installation places the package in the
+current source trees `node_modules` folder. Additionally it will add an entry
+into the local package.json file. A `global` installation is preformed with the
+-g flag.
+
+```bash
+npm install -g <package-name>
+```
+
+Installing a package in this mannger installs it into the global location. To
+find out where this location is on your machine run the `npm root -g` command
