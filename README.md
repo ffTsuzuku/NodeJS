@@ -211,7 +211,7 @@ that looks like this.
 
 > **TODO Talk about .node files.**
 
-# Where does NPM install packages?
+## Where does NPM install packages?
 
 NPM allows users to install packages either `locally` or `globally`. The default
 installation type is local, a location installation places the package in the
@@ -224,4 +224,27 @@ npm install -g <package-name>
 ```
 
 Installing a package in this mannger installs it into the global location. To
-find out where this location is on your machine run the `npm root -g` command
+find out where this location is on your machine run the `npm root -g` command.
+
+## Package.json guide
+
+The only established rule for what can be inside a package.json file is that its
+contents must be valid json. Otherwise its contents vary based on the tools and
+packages required by a project. Common properties listed in most package.json
+files are listed blow.
+
+-   `version` indicates the current version of a package.
+-   `name` sets the application/package name
+-   `main` sets the entry point for the application
+-   `private` when `true` prevents the app/package from accidentally being published
+-   `scripts` defines a set of node scripts you can run.
+-   `dependencies` sets a list of npm packages installed as dependencies
+-   `devDependencies` sets a list of npm packages installed as development dependencies
+-   `engines` sets which version of Node.js this package/app works on
+-   `browserslist` is used to tell which browsers and their versions are supported
+
+### Package versions
+
+Npm package versions are denoted by 3 period delimited numbers. The first number
+is referred to as the major release number, the second version is the minor release,
+and lastly the third version is the minor release version.
