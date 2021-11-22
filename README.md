@@ -288,3 +288,57 @@ prefixed infront of the version number.
 -   `=` This prefix means you accept only that exact version specified.
 -   `-` This prefix means you accept a range of versions. e.g `2.1.0 - 2.6.2`
 -   `||` This prefix can be used to combine rules. e.g `< 2.1 || > 2.6`.
+
+## The npx Node.js Package Runner
+
+`npx` lets you run code built with Node.Js and published through the npm
+registry.
+
+### Easily run local commands
+
+Node.js developers used to publish global packages in order to use commands
+easily through their terminals. The problem with this approach is that you were
+then pidgeon holed into using a specific version of that command. With npx you
+can locally install comands and npx will search through the `node_modules`
+folder and excute the desired command, without needed to knw any paths.
+
+Another beneifit of `npx` is that is allows you to run commands, without having
+to install them. Running `npx commandname` will automatically run the specified
+code by fetching it from the npm registry and executing the code.
+
+This is useful because.
+
+1. You don't have to install any commands.
+2. You can run different versions of the same command, using the @version syntax.
+
+```bash
+npx node@10 -v #v10.18.1
+```
+
+### Run arbitrary code snippets directly from a URL.
+
+`npx` does not limit you to the packages on the npm registry.
+
+You can run code that sits on a GitHub gist for example.
+
+```bash
+npx https://gist.github.com/zkat/4bc19503fe9e9309e2bfaa2c58074d32
+```
+
+The command at that url is composed of 3 files. Simple optional `Readme.md` file
+that details/specs out the command. An `index.js` file that contains the code to
+execute. And a `package.json` that specifies the `bin` property so npx knows
+what file to run.
+
+**`index.js`**
+
+```js
+#!/usr/bin/env node
+console.log('yay gist')
+```
+
+**`package.json`**
+
+```json
+{ "name": "npx-is-cool", "version": "0.0.0", "bin": "./index.js" }
+```
