@@ -248,3 +248,43 @@ files are listed blow.
 Npm package versions are denoted by 3 period delimited numbers. The first number
 is referred to as the major release number, the second version is the minor release,
 and lastly the third version is the minor release version.
+
+### Semantic Versioning using npm
+
+All Node.js packages use semantic versioning which means a version number is
+composed of 3 digits `x.y.z`.
+
+-   x: the first digit is the major version
+-   y: the second digit is the minor version
+-   z: the third digit is the patch version
+
+Each semantic version follows a rule.
+
+-   an increase in the major number means you are pushing out an incompatible
+    api change.
+-   an increase in the minor version means you are adding a fuctionality in a
+    backwards compatible manner
+-   an increase in the patch version means you are making a backwards compatible
+    bug fix.
+
+Its important to adhere to these rules, because the package.json file uses that
+format to determine what versions are installable, based on the symbol that is
+prefixed infront of the version number.
+
+-   `^` versions prefixed by this symbol mean that any version that has the same
+    major number can be installed. e.g `^13.0.0` means you can install `13.0.1`
+    `13.1.1` but not `14.0.0` or above.
+-   `~` This prefix means that you can install any patch version but the major and
+    minor versions are frozen. So `~13.0.0` means you can install `13.0.1` but
+    `13.1.0` is not valid.
+-   `>` This prefix means that you can install any patch version that is higher
+    than the one you specified.
+-   `>=` This prefix means that you can install any patch version that is higher
+    than or equal to the patch version you specified.
+-   `<=` This prefix means that you can install any patch version that is lower
+    than or equal to the patch version you specified.
+-   `<` This prefix means that you can install any patch version that is lower
+    than the patch version specified.
+-   `=` This prefix means you accept only that exact version specified.
+-   `-` This prefix means you accept a range of versions. e.g `2.1.0 - 2.6.2`
+-   `||` This prefix can be used to combine rules. e.g `< 2.1 || > 2.6`.
