@@ -160,7 +160,7 @@ a main module. e.g
 }
 ```
 
-In no main module is defined inside `package.json` require will then attempt to
+If no main module is defined inside `package.json` require will then attempt to
 locate and load an `index.js` or `index.node` file in the root of the folder. If
 it is unable to locate these files, then the import will fail.
 
@@ -342,3 +342,6 @@ console.log('yay gist')
 ```json
 { "name": "npx-is-cool", "version": "0.0.0", "bin": "./index.js" }
 ```
+
+Note how the index.js file begins with `#!/usr/bin/env node`, this is necessary
+without this the scripts are started without the node executable!
