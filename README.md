@@ -345,3 +345,106 @@ console.log('yay gist')
 
 Note how the index.js file begins with `#!/usr/bin/env node`, this is necessary
 without this the scripts are started without the node executable!
+
+## The Node.js Event Loop
+
+The Node.js JavaScript code runs on a single thread. So only one thing happens
+at any given time. Despite this Node.js still provides the ability to run things
+asynchronously and have non-block I/O.
+
+Each browser tab generally has it's own event loop, this is to prevent a single
+tab from blocking your entire browser.
+
+### Blocking the event loop
+
+Any JavaScript code that takes too long to return back control to the event loop
+will block the execution of all JavaScript code on the page, even block the UI
+thread, making it so users cannot click around, scroll the page, etc..
+
+Almost all the I/O primitives in JavaScript are non-blocking. Network request,
+filesystem operations, and so on. Being blocking is the exception, and this is
+why JavaScript is based so much on callbacks, and more recently promises and
+async/await.
+
+### The call stack
+
+The call stack is LIFO, (Last In, First Out). The event loop continuously checks
+the `call stack` to see if there is any function that needs to run.
+
+While doing so, it adds any function call it finds to the stack and executes
+each in order.
+
+### Queuing function execution
+
+You are able to defer a function call until the call stack is clear.
+
+**`index.js`**
+
+```js
+const bar = () => console.log('bar')
+
+const baz = () => console.log('baz')
+
+const foo = () => {
+    console.log('foo')
+    setTimeout(bar, 0)
+    baz()
+}
+
+foo()
+
+// Output
+//-> foo
+//-> baz
+//-> bar
+```
+
+![Call Stack With Defer](/figures/deferStack.png?raw=true 'Defer Call Stack')
+
+### The Message Queue
+
+When setTimeout is called, the browser or Node.js starts a timer, when the timer
+expires the callback function is placed into the `Message Queue`. The Message
+queue is where user-initiated events like clicks, key, scroll, etc.. are
+queued.Even DOM events like onload are queued into the message queue.
+
+The Event loop gives priority to the call stack, and only after the call stack
+begins empty does it begin to queue up items from the Message Queue into the
+call stack.Set timeout is non-blocking, if you pass it a time of 3 seconds,
+the execution of your code is not halted for the 3 second period. Instead the
+wait happens seperately inside the browser / node.js environment.
+
+### ES6 Job Queue
+
+ECMAScript 2015 introduced the concept of the Job Queue, which is used by
+Promises (also introduced in ES6/ES2015). It's a way to execute the result of an
+async function as soon as possible, rather than being put at the end of the call
+stack.
+
+Promises that resolve before the current function ends will be executed right
+after the current function.
+
+**`index.js`**
+
+```js
+const bar = () => console.log('bar')
+
+const baz = () => console.log('baz')
+
+const foo = () => {
+    console.log('foo')
+    setTimeout(bar, 0)
+    new Promise((resolve, reject) =>
+        resolve('should be right after baz, before bar')
+    ).then((resolve) => console.log(resolve))
+    baz()
+}
+
+foo()
+
+//-> Output
+//-> foo
+//-> baz
+//-> should be right after baz, before bar
+//-> bar
+```
