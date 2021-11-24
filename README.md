@@ -353,8 +353,8 @@ at any given time. Despite this Node.js still provides the ability to run things
 asynchronously and have non-block I/O. It does this through it's event-loop
 which offloads operations to the system kernel whenever possible.
 
-Additionally each browser tab generally has it's own event loop, this is to prevent a single
-tab from blocking your entire browser.
+Additionally each browser tab generally has it's own event loop, this is to
+prevent a single tab from blocking your entire browser.
 
 **`Event Loop Flow`**
 
@@ -380,7 +380,31 @@ tab from blocking your entire browser.
 ```
 
 Each phase of the Even loop is depicted above in boxes, and each phase has a
-FIFO queue of callbacks to execute.
+FIFO queue of callbacks to execute. The event loop will execute callbacks that
+belong to its current phase until the queue has been exhausted or the maximum
+number of callbacks has executed, at which point it will move onto the next
+phase.
+
+#### Phase Overview
+
+-   **timers**: this phase executes callbacks scheduled by `setTimeout()` and
+    `setInterval()`.
+-   **pending callbacks**: executes I/O callbacks deferred to the next loop
+    iteration.
+-   **idle, prepare**: used internally only.
+-   **poll**: retrieve new I/O events; execute I/O related callbacks.
+-   **checks**: `setImediate()` callbacks are invoked here.
+-   **close callbacks**: some close callbacks, e.g socket.on('close')`.
+
+#### Phases in Detail
+
+##### timers
+
+A timer specifies the **threshold** after which a provided callback may be
+executed and not the exact time it will run. Timer callbacks will run as early
+as they can be scheduled after the specified amount of time has passedl; however
+Operating Systems scheduling or the running of other callbacks may delay them.
+The poll phase controls when timers are executed.
 
 ### Blocking the event loop
 
