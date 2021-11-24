@@ -448,3 +448,13 @@ foo()
 //-> should be right after baz, before bar
 //-> bar
 ```
+
+### Understanding process.nextTick()
+
+Each time the event loop takes a full trip, we call that a tick. Consequently
+when we pass a function to `process.nextTick()`, we instruct the engine to
+invoke the function at the end of the current operation, before the next event
+loop tick starts.
+
+Use `nextTick()` when you want to make sure that in the next event loop
+iteration that code is already executed.
