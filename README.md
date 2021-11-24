@@ -350,10 +350,37 @@ without this the scripts are started without the node executable!
 
 The Node.js JavaScript code runs on a single thread. So only one thing happens
 at any given time. Despite this Node.js still provides the ability to run things
-asynchronously and have non-block I/O.
+asynchronously and have non-block I/O. It does this through it's event-loop
+which offloads operations to the system kernel whenever possible.
 
-Each browser tab generally has it's own event loop, this is to prevent a single
+Additionally each browser tab generally has it's own event loop, this is to prevent a single
 tab from blocking your entire browser.
+
+**`Event Loop Flow`**
+
+```
+   ┌───────────────────────────┐
+┌─>│           timers          │
+│  └─────────────┬─────────────┘
+│  ┌─────────────┴─────────────┐
+│  │     pending callbacks     │
+│  └─────────────┬─────────────┘
+│  ┌─────────────┴─────────────┐
+│  │       idle, prepare       │
+│  └─────────────┬─────────────┘      ┌───────────────┐
+│  ┌─────────────┴─────────────┐      │   incoming:   │
+│  │           poll            │<─────┤  connections, │
+│  └─────────────┬─────────────┘      │   data, etc.  │
+│  ┌─────────────┴─────────────┐      └───────────────┘
+│  │           check           │
+│  └─────────────┬─────────────┘
+│  ┌─────────────┴─────────────┐
+└──┤      close callbacks      │
+   └───────────────────────────┘
+```
+
+Each phase of the Even loop is depicted above in boxes, and each phase has a
+FIFO queue of callbacks to execute.
 
 ### Blocking the event loop
 
@@ -374,9 +401,11 @@ the `call stack` to see if there is any function that needs to run.
 While doing so, it adds any function call it finds to the stack and executes
 each in order.
 
-### Queuing function execution
+### Queuing function execution (setTime())
 
-You are able to defer a function call until the call stack is clear.
+You are able to defer a function call until the call stack is clear. This is
+useful to avoid blocking the CPU on intensive task and let other functions be
+executed while performing a havy calculation.
 
 **`index.js`**
 
@@ -400,6 +429,29 @@ foo()
 ```
 
 ![Call Stack With Defer](/figures/deferStack.png?raw=true 'Defer Call Stack')
+
+If the function you pass to `setTimeout` takes in paramters you can pass those
+as additional arguments.
+
+**`setTimeout() Example`**
+
+```js
+const myFunction = (firstParam, secondParam) => {
+    // do something
+}
+
+setTimeout(myFunction, 2000, firstParam, secondParam)
+```
+
+setTimeout returns an id, which can be used to cancel the scheduled function.
+
+**`Canceling setTimeout`**
+
+```js
+const id = setTimeout() => {
+    //run after 2 seconds
+}, 2000)
+```
 
 ### The Message Queue
 
@@ -458,3 +510,71 @@ loop tick starts.
 
 Use `nextTick()` when you want to make sure that in the next event loop
 iteration that code is already executed.
+
+### Understanding setImmediate()
+
+When you want to execute a piece of code asynchronously, but as soon as possible
+one option is to use the `setImmediate()` function provided by Node.js.
+
+```js
+setImmediate(() => {
+    // run something
+})
+```
+
+Any function passed to `setImmediate` is executed in the next iteration of the
+event loop. This means that it will be executed after `process.nextTick()`
+but either before or after `setImmediate(() => console.log('hi'), 0)`, depending
+on various factors.
+
+### Scheduling Reoccuring Task (setInterval)
+
+`setInterval` works exactly in the same manner as `setTimeout` with the
+exception that the provided callback runs indefinately at an interval which is
+passed as the second argument.
+
+**`setInterval`**
+
+```js
+setInterval(() => {
+    // do something every 2 seconds.
+}, 2000)
+```
+
+Like `setTimeout`, `setInterval` also returns an id which can be used to
+terminate the scheduled callback.
+
+**`terminate interval`**
+
+```js
+const id = setInterval(() => {
+    // do something every 2 seconds
+}, 2000)
+
+clearInterval(id)
+```
+
+Consider the scenario where setInterval is passed a callback which runs for
+the same exact duration every time. This is the ideal scenario and results in
+a timegraph similar to the one pictured below.
+
+![Ok-SetInterval](/figures/setinterval-ok.png?raw=true 'Perfect Scheduling')
+
+Now lets say the duration of the function execution varies significantly, this
+may be the case when it comes to networking request. In such scenarios we'd
+have a timegraph similar to the one pictured below.
+
+![Ok-SetInterval](/figures/setinterval-overlapping.png?raw=true 'Perfect Scheduling')
+
+In order to avoid this, you can schedule a recursive setTimeout to be called
+when the back function finishes.
+
+**`recursive setTimeout`**
+
+```js
+const muFunction = () => {
+    setTimeout(myFunction, 1000)
+}
+
+setTimeout(myFunction, 1000)
+```
