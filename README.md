@@ -385,7 +385,7 @@ belong to its current phase until the queue has been exhausted or the maximum
 number of callbacks has executed, at which point it will move onto the next
 phase.
 
-#### Phase Overview
+### Phase Overview
 
 -   **timers**: this phase executes callbacks scheduled by `setTimeout()` and
     `setInterval()`.
@@ -396,15 +396,100 @@ phase.
 -   **checks**: `setImediate()` callbacks are invoked here.
 -   **close callbacks**: some close callbacks, e.g socket.on('close')`.
 
-#### Phases in Detail
+### Phases in Detail
 
-##### timers
+#### timers
 
 A timer specifies the **threshold** after which a provided callback may be
 executed and not the exact time it will run. Timer callbacks will run as early
-as they can be scheduled after the specified amount of time has passedl; however
+as they can be scheduled after the specified amount of time has passed; however
 Operating Systems scheduling or the running of other callbacks may delay them.
-The poll phase controls when timers are executed.
+The poll phase controls when timers are executed. Lets consider the following
+example to better understand that.
+
+Lets say you schedule a timeout to execute after a 100ms threshold, then your
+script starts asynchronously reading a file which takes 95ms:
+
+**`scheduler`**
+
+```js
+const fs = require('fs')
+
+function someAsyncOperation(callback) {
+    // Assume this takes 95ms to complete.
+    fs.readFile('/path/to/file', callback)
+}
+
+const scheduledTimeoutAt = Date.now()
+setTimeout((
+    console.log(`I was scheduled ${Date.now() - scheduledTimeoutAt}ms ago`)
+) => {}, 100)
+
+someAsyncOperation (() => {
+    const start = Date.now()
+
+    while (Date.now() - start < 10) {
+        // kill 10ms
+    }
+})
+```
+
+When the `poll` phase begins, its queue is empty (`fs.readFile()`
+has not completed), so it will wait for the number of ms remaining until the
+soonest timer's threshold is reached. While it is waiting, 95ms pass,
+`fs.readFile()` finishes reading the file and its callback which takes 10ms to
+complete is added to the `poll` queue and executed. When the callback finishes,
+there are no more callbacks in the queue, so the event loop will see that the
+threshold of the soonest timer has been reached then wrap back to the `timers`
+phase to execute the timer's callback. In this example, you will see that the
+total delay between the timer being scheduled and its callback being executed
+will be 105ms.
+
+To prevent the `poll`phase from starving the event loop, libuv (the C library
+that implements the Node.js event loop and all of the asynchronous behaviors
+of the platform) also has a hard maximum (system dependent) before it stops
+polling for more events. This means that if the readSync call took longer than
+100ms to complete, the event loop would execute the timer callback and then
+check back on if readSync has completed to launch its callback.
+
+#### poll
+
+The poll phase has two main functions:
+
+1. Calcuate how long it should block and poll for I/O, then
+2. Processing events in the `poll` queue.
+
+When the event loop enters the `poll` phase and there are no timers scheduled,
+one of two things will happen.
+
+-   If the `poll` queue is **not empty**, the event loop will iterate through its
+    queue of callbacks executing them synchronously until either the queue has
+    been exhausted, or the system-dependent hard limit is reached.
+
+-   If scripts **have not** been scheduled by `setImmediate()`, the event loop
+    will wait for callbacks to be added to the queue, then execute them
+    immediately.`
+
+Once the `poll` queue is empty the event loop will check for timers whose time
+threshold have been reached. If completed timers exist, the event loop will
+wrap back to the timers phase and execute all timer callbacks.
+
+#### check
+
+This phase allows a person to execute callbacks immediately after the `poll`
+phase has completed. If the `poll` phase is idle and scrupts have been queued
+with `setImmediate()`, the event loop may continue to the `check` phase rather
+than eaiting.
+
+`setImmediate()` is actually a special timer that runs in a seperate phase of
+the event loop. It uses a libuv API that schedules callbacks to excute after the
+pill phase has completed.
+
+Generally, as the code is executed, the event loop will eventually hit the `poll`
+phase where it will wait for an incoming connection, request, etc. However, if
+a callback has been scheduled with `setImmediate()` and the `poll` phase becomes
+idle, it will end and continue to the `check` phase rather than waiting for
+`poll` events.
 
 ### Blocking the event loop
 
