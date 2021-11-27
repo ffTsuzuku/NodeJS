@@ -491,6 +491,58 @@ a callback has been scheduled with `setImmediate()` and the `poll` phase becomes
 idle, it will end and continue to the `check` phase rather than waiting for
 `poll` events.
 
+#### close callbacks
+
+If a socket or handle is closed abruptly (e.g `socket.destroy()`), the `close`
+event will be emitted in this phase. Otherwise it will be emitted via
+`process.nextTick()`
+
+### setImmediate() vs setTimeout()
+
+`setImmediate()` and `setTimeout()` are similar, but behave in different ways
+depending on when they are called.
+
+-   `setImmediate()` is designed to execute a script once the current `poll`
+    phase completes.
+
+-   `setTimeout()` schedules a script to be run after a minimum threshold in ms
+    has elapsed.
+
+The order in which the timer are executed will vary depending on the context
+in which they are called. If both are called from within the main module, then
+timing will be bound by the performance of the process (which can be impacted
+by other applications runnong on the machine).
+
+However when scheduled in the context of an I/O Cycle, `setImmediate` will always
+execute first.
+
+**`SetImmediate in I/O Cycle`**
+
+```js
+const fs = require('fs')
+
+fs.readFile(__filename, () => {
+    setTimeout(() => {
+        console.log('timeout')
+    }, 0)
+    setImmediate(() => {
+        console.log('immediate')
+    })
+})
+```
+
+```bash
+$ node timeout_vs_immediate.js
+immediate
+timeout
+
+$ node timeout_vs_immediate.js
+immediate
+timeout
+```
+
+#### process.nextTick()
+
 ### Blocking the event loop
 
 Any JavaScript code that takes too long to return back control to the event loop
