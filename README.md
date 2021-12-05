@@ -555,6 +555,18 @@ This can be bad cause it allows you to "starve" your **I/O** by making recursive
 `process.nextTick()` calls, which would prevent the loop from reaching the poll
 phase.
 
+Here is a real world example of using Process.nextTick() 
+```JS
+const server = net.createServer(() => {}).listen(8080);
+
+server.on('listening', () => {});
+```
+When passing the port to listen the Port is bound immediately.So the listening 
+callback could be called immediately.The problem with this is that the callback has
+not been set at that time.To get around this the listen callback is queued using 
+Process.netTick.
+
+
 ### Blocking the event loop
 
 Any JavaScript code that takes too long to return back control to the event loop
