@@ -543,6 +543,18 @@ timeout
 
 #### process.nextTick()
 
+`process.nextTick()` is not part of the event loop, since it is not shown on the
+diagram above. Instead there is a `nextTick` queue which is processed after the
+current operation is completed, regardless of the current phase of the event
+loop. An operation is defined as a transition from the underlying C/C++ handler,
+and handling the JavaScript that needs to be executed.
+
+That means any time you call `process.nextTick()` in a phase, all callbacks
+passed to `process.nextTick()` will be resolved before the event loop continues.
+This can be bad cause it allows you to "starve" your **I/O** by making recursive
+`process.nextTick()` calls, which would prevent the loop from reaching the poll
+phase.
+
 ### Blocking the event loop
 
 Any JavaScript code that takes too long to return back control to the event loop
