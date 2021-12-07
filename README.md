@@ -541,7 +541,7 @@ immediate
 timeout
 ```
 
-#### process.nextTick()
+### process.nextTick()
 
 `process.nextTick()` is not part of the event loop, since it is not shown on the
 diagram above. Instead there is a `nextTick` queue which is processed after the
@@ -555,17 +555,38 @@ This can be bad cause it allows you to "starve" your **I/O** by making recursive
 `process.nextTick()` calls, which would prevent the loop from reaching the poll
 phase.
 
-Here is a real world example of using Process.nextTick() 
+Here is a real world example of using Process.nextTick()
+
 ```JS
 const server = net.createServer(() => {}).listen(8080);
 
 server.on('listening', () => {});
 ```
-When passing the port to listen the Port is bound immediately.So the listening 
+
+When passing the port to listen the Port is bound immediately.So the listening
 callback could be called immediately.The problem with this is that the callback has
-not been set at that time.To get around this the listen callback is queued using 
+not been set at that time.To get around this the listen callback is queued using
 Process.netTick.
 
+#### process.nextTick() vs setImmediate()
+
+We've gone over two scheduling functions that are similar in nature.
+
+-   `process.nextTick()` fires immediately on the same phase
+-   `setImmediate()` fires on the following iteration or 'tick' of the event loop.
+
+The name of these two functions should be swapped, but this is an artifact of
+the past that cannot be changed. Node.JS doc recommend using `setImmediate`
+in all cases because it's easier to reason about.
+
+#### Why use process.next()?
+
+There can be use main reasons:
+
+1. Allow users to handle errors, cleanup any unneeded resources, or perhaps
+   try the request again before the event loop continues.
+2. Sometimes its necessary to allow the a callback to run after the call stack
+   has been unwound but before the next event loop.
 
 ### Blocking the event loop
 
