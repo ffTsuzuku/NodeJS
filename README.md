@@ -784,3 +784,205 @@ const muFunction = () => {
 
 setTimeout(myFunction, 1000)
 ```
+
+## JavaScript Asynchronous Programming and Callbacks
+
+Computers are asynchronous by design. Every program runs for a specific time
+slot and then stops its execution to let another program continue their
+execution. Simulatenous execution is simply an illusion and not a reality,
+except for in multiprocessor machines.
+
+Programs can use interrupts, a signal that is emitted to the processor to gain
+the attention of the system.
+
+### Callbacks
+
+It is common to use Callbacks to run code when a particular event fires such
+as the page loading, a click going off, etc...
+
+```js
+window.addEventListener('load', () => {
+    // window loaded
+    // do what you want
+})
+```
+
+### Handling errors in callbacks
+
+In Node.js the first parameter in any callback function is the error object:
+**error-first-callbacks**.
+
+```js
+fs.readFile('/file.json', (err, data) => {
+    if (err) {
+        // handle error
+        console.log(err)
+        return
+    }
+
+    // no errors, process data
+    console.log(data)
+})
+```
+
+### The problem with callbacks
+
+The problem with nesting is that it leads to several levels of nesting also
+known as callback hell. Starting with ES6, JavaScript introduced promises and
+async/await to handle asynchronous code. This is mearly an alternative, and for
+simple causes normal callbacks are fine.
+
+## Understanding Javascript Promises
+
+A promise is commonly defined as a proxy for a value that will eventually
+become available. Promises are a way of handling asynchronous code without
+getting suck in callback hell.
+
+`Async functions` use promises behind the scenes so understanding how promises
+work is important to understand async and await.
+
+### How promises work
+
+Once a promise has been called, it will start in a pending state. This means
+that the calling function continues executing, while the promise is pending
+until it resolves. The created promise will reventually reach the `resolved`
+state or the `rejected` state, and call the respective callback functions passed
+to `then` and `catch` upon finishing.
+
+### Creating a promise
+
+```js
+const fs = require('fs')
+
+const getFile = (fileName) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(fileName, (err, data) => {
+            if (err) {
+                reject(err) // calling `reject` will cause the promise to fail with or without the error passed as an argument
+
+                return // and we don't want to go any further
+            }
+
+            resolve(data)
+        })
+    })
+}
+
+getFile('/etc/passwd')
+    .then((data) => console.log(data))
+
+    .catch((err) => console.error(err))
+```
+
+In order to Create a promise We use the promise constructor. once a promise is created it immediately goes into the pending state. Its state gets updated When resolve or reject is called. You can access the result by chaining a then or catch.
+
+The main benefit to using promises in this Manner is that we can abstract the getfile method into its own module and this leaves the reader only having to read the chain of if then statement to understand what the Code is doing.
+
+### Chaining promises
+
+You Can return a promise to another promise this is known as chaining.
+
+```js
+const status = (response) => {
+    if (response.status >= 200 && response.status < 300) {
+        return Promise.resolve(response)
+    }
+    return Promise.reject(new Error(response.statusText))
+}
+
+const json = (response) => response.json()
+
+fetch('/todos.json')
+    .then(status) // note that the `status` function is actually **called** here, and that it **returns a promise***
+    .then(json) // likewise, the only difference here is that the `json` function here returns a promise that resolves with `data`
+    .then((data) => {
+        // ... which is why `data` shows up here as the first parameter to the anonymous function
+        console.log('Request succeeded with JSON response', data)
+    })
+    .catch((error) => {
+        console.log('Request failed', error)
+    })
+```
+
+### Handling Errors
+
+You can append a catch statement at the end of a promise chain and that will
+catch errors from any of the promises and handle them in a manner of your
+choosing.
+
+`Error Handling`
+
+```js
+new Promise((resolve, reject) => {
+    throw new Error('Error')
+}).catch((err) => {
+    console.error(err)
+})
+
+// or
+
+new Promise((resolve, reject) => {
+    reject('Error')
+}).catch((err) => {
+    console.error(err)
+})
+```
+
+### Orchestrating promises
+
+If you need a way to execute a callback once several promises have all resolved
+then you can use `Promise.all()` instead
+
+`Promise.all()`
+
+```js
+const f1 = fetch('/something.json')
+const f2 = fetch('/something2.json')
+
+Promise.all([f1, f2])
+    .then((res) => {
+        console.log('Array of results', res)
+    })
+    .catch((err) => {
+        console.error(err)
+    })
+```
+
+Note If any of the passed promises reject, then `Promise.all()` will also reject.
+This may be undesirable, if instead youd like to resolve if any of the promises
+resolve, then you can opt to use `Promise.any`, which has a return value of
+whatever is returned by the first resolved promise, if all promises are rejected
+then it also rejects, with an `AggregateError`.
+
+`Promise.any`
+
+```js
+const first = new Promise((resolve, reject) => {
+    setTimeout(reject, 500, 'first')
+})
+const second = new Promise((resolve, reject) => {
+    setTimeout(reject, 100, 'second')
+})
+
+Promise.any([first, second]).catch((error) => {
+    console.log(error) // AggregateError
+})
+```
+
+Similarly if you want to only wait for the first promise but don't care about
+if it resolves or rejects, you can opt to use `Promise.race()`.
+
+`Promise.race`
+
+```js
+const first = new Promise((resolve, reject) => {
+    setTimeout(resolve, 500, 'first')
+})
+const second = new Promise((resolve, reject) => {
+    setTimeout(resolve, 100, 'second')
+})
+
+Promise.race([first, second]).then((result) => {
+    console.log(result) // second
+})
+```
