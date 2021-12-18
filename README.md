@@ -1074,3 +1074,40 @@ myFetch().catch((e) => {
     )
 })
 ```
+
+#### Node.js Event Emitter
+
+Node.js provides an `events` module which allows us to create a events system
+akin to that provided within a browser environment. An event object comes with
+many functions, the two primary ones being `on` and `emit`.
+
+-   `emit:` Is used to trigger an event
+-   `on:`Is used to add a callback that will be executed when the specified event
+    triggers.
+
+`Event example`
+
+```js
+const EventEmitter = require('events')
+const emitter = new EventEmitter()
+
+emitter.on('start', () => {
+    // do something
+})
+
+emitter.emit('start')
+```
+
+You can pass arguments to your callback as well, when emitting an event.
+
+`Passing arguments to event callback`
+
+```js
+emitter.emit('start', 1, 2, 3)
+```
+
+The events module also gives us access to other functionality such as.
+
+-   `once()`: Add a one-time listener.
+-   `removeListener()`/`off()`: Removes an event listner from an event.
+-   `removeAllListeners()`: Removes all listners for an event.
