@@ -989,6 +989,8 @@ Promise.race([first, second]).then((result) => {
 
 ### Modern Asynchronous JavaScript with Async and Await
 
+#### Async
+
 `Async` and `Await` are another abstraction layer created ontop of the Promise
 API. They reduce the boiler plate around promises. While Promises were invented
 to solve the complexity of callback hell, they also lead to a level of complexity
@@ -1017,4 +1019,58 @@ We can consume the value of the promise like this.
 hello().then(console.log)
 //-> hello
 //-> Promise { <state>: 'fulfilled', <value>: undefined }
+```
+
+#### Await
+
+The `await` keyword can be placed infront of Promise-Based function call to
+pause the code on that line until the promise fulfills, then return the resulting
+value.
+
+`Await example`
+
+```js
+fetch('coffee.jpg')
+    .then((response) => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        return response.blob()
+    })
+    .then((myBlob) => {
+        let objectURL = URL.createObjectURL(myBlob)
+        let image = document.createElement('img')
+        image.src = objectURL
+        document.body.appendChild(image)
+    })
+    .catch((e) => {
+        console.log(
+            'There has been a problem with your fetch operation: ' + e.message
+        )
+    })
+```
+
+The promise based code above can be converted to `async` `await` like this.
+
+```js
+async function myFetch() {
+    let response = await fetch('coffee.jpg')
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    let myBlob = await response.blob()
+
+    let objectURL = URL.createObjectURL(myBlob)
+    let image = document.createElement('img')
+    image.src = objectURL
+    document.body.appendChild(image)
+}
+
+myFetch().catch((e) => {
+    console.log(
+        'There has been a problem with your fetch operation: ' + e.message
+    )
+})
 ```
