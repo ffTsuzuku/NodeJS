@@ -986,3 +986,23 @@ Promise.race([first, second]).then((result) => {
     console.log(result) // second
 })
 ```
+
+### Modern Asynchronous JavaScript with Async and Await
+
+`Async` and `Await` are another abstraction layer created ontop of the Promise
+API. They reduce the boiler plate around promises. While Promises were invented
+to solve the complexity of callback hell, they also lead to a level of complexity
+as well, and consequently cannot be used as the final solution to address the
+complexity that arises with asynchronous code.
+
+```js
+function fetchUserData() {
+    // fetching data from backend ...
+}
+
+async function loadUserProfile() {
+    // get user data first
+    const stats = await fetchUserData()
+    // display stats with html ....
+}
+```
