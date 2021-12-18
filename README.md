@@ -995,14 +995,26 @@ to solve the complexity of callback hell, they also lead to a level of complexit
 as well, and consequently cannot be used as the final solution to address the
 complexity that arises with asynchronous code.
 
+The `async` keyword is placed infront of function declarations by doing this you
+let the compiler know there is a possibility that the function will contain the
+`await` keyword, but additionally it will make it so that the function returns
+a promise.
+
+`Async example`
+
 ```js
-function fetchUserData() {
-    // fetching data from backend ...
+async function hello() {
+    return hello
 }
 
-async function loadUserProfile() {
-    // get user data first
-    const stats = await fetchUserData()
-    // display stats with html ....
-}
+hello()
+//-> Promise { <state>: 'fulfilled', <value>: hello}
+```
+
+We can consume the value of the promise like this.
+
+```js
+hello().then(console.log)
+//-> hello
+//-> Promise { <state>: 'fulfilled', <value>: undefined }
 ```
