@@ -3,7 +3,11 @@
 ## Imports and Exports
 
 NodeJS allows for the importing and exporting for individual NodeJS files called
-modules. In order to import an file we use the require syntax.
+modules. In order to import an file we have two options, we can import using
+the commonjs specification or the ECMAScript Module specification. Note official
+support for imports was added in v13 of node.
+
+### CommonJS Imports
 
 ```js
 const library = require('./library')
@@ -47,6 +51,33 @@ exports.car = car
 ```js
 const items = require('./items')
 const car = items.car
+```
+
+### ESM Modules
+
+In order to use ECMA Script syntax for importing in Node, you have two options.
+You can let node know you want to use ECMA Script styled importing by changing
+your file extentions from `.js` to `.mjs` which stands for module JS. Then you
+want to change your imported file to say `exports` or `export default`
+
+```mjs
+const car = {
+    brand: 'Ford',
+    model: 'Fiesta',
+}
+
+exports {
+    car
+}
+```
+
+```mjs
+const car = {
+    brand: 'Ford',
+    model: 'Fiesta',
+}
+
+export default car
 ```
 
 ### Main Module
