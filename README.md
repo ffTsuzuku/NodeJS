@@ -257,6 +257,71 @@ npm install -g <package-name>
 Installing a package in this mannger installs it into the global location. To
 find out where this location is on your machine run the `npm root -g` command.
 
+### The Special Case of index.js
+
+For the following section we'll reference Directory structure 1 and 2, and we'll
+refer to them as DS1 and DS2.
+
+// Directory Structure # 1
+
+```
+utility
+    files.js
+    string.js
+index.js
+```
+
+// Directory Structure # 2
+
+```
+utility
+    files.js
+    string.js
+    index.js
+index.js
+```
+
+Lets say our project is structured like in **DS1**, in our index.js located in
+our root dir we would like to import in functionality defined in `files.js` and
+`string.js`. Now we could just use their relative path to import them.
+
+```js
+const files = require('./utility/files.js')
+const stringUtil = require('./utility/string.js')
+```
+
+Did you know that instead of doing two seperate imports, you only need one. This
+is the magic of `index.js` in NoeJS. In NodeJS you can pass the name of a
+directory into require as long as that directory contains a index.js file. Node
+will automatically import in the index.js. We can use this to our advantage.
+Lets change our project structure to **DS2**. Now in `./util/index.js` we'll add
+the following lines.
+
+```js
+const files = require('./utility/files.js')
+const stringUtil = require('./utility/string.js')
+
+module.exports = {
+    files,
+    stringUtil,
+}
+```
+
+Note you can also use the spread operator here.
+
+```js
+module.exports = {
+    ...require('./utility/files.js'),
+    ...require('./utility/string.js'),
+}
+```
+
+And then in our root `index.js` file we can do the following.
+
+```js
+const { files, stringUtil } = require('./util')
+```
+
 ## Package.json guide
 
 The only established rule for what can be inside a package.json file is that its
