@@ -1207,3 +1207,84 @@ The events module also gives us access to other functionality such as.
 -   `once()`: Add a one-time listener.
 -   `removeListener()`/`off()`: Removes an event listner from an event.
 -   `removeAllListeners()`: Removes all listners for an event.
+
+## Backend-Notes
+
+Journey to Learning Node Backend
+
+### Creating A Node Server
+
+All node servers rely on the `http` library to handle http request and response.
+Creating a server is as simple as calling the `createServer` method from `http`
+and then the `listen` function of the resultant server object.n
+
+```js
+// Example basic http server.
+import http from 'http'
+
+const server = http.createServer((req, res) => {
+    req
+    res.end('Halt and Catch Fire')
+})
+
+server.listen(3000, () => {
+    console.log('Listening on 3k')
+})
+```
+
+### Defining Paths In NodeJS
+
+TODO
+
+### Same-Origin Policy
+
+#### Built In Browser Security
+
+The Origin Of a Network Request is comprised of three components
+
+-   Protocol: `https`://google.com/maps
+-   Host: https://`www.google.com`/maps
+-   Port: https://www.google.com`:443`/maps
+
+A common security feature in browsers known as the `Same-Origin policy` works to
+prevent documents loaded into the browser from access external third-party sites.
+To understand this better lets say you navigate to a malicious site called
+info-stealer.com, info-stealer loads in javascript which will make a fetch
+request to gmail.com, if the browser didnt block this request via the
+`same origin policy` then the malicious site would be able to steal information
+about you. Note the browser will only prevent `get` request done via JS, it
+doesn't care about `post` request, instead it lets the third party site decide
+what it wants to do with rogue request like that.
+
+#### Node Security
+
+By default the `http` library sets it so that incoming request must come from the
+same Origin, any outside request will be blocked and result in a CORS error.
+Node does this by setting the `access-control-allow-origin` header to strictly
+accept request only from the same origin by default. Lets consider the
+following example. Lets say we have two websites.
+
+-   RoyaltyFreeImages.com
+-   RoyaltyFreeMedia.com
+
+RoyaltyFreeImages is a website that allows users to browse images through its
+website, instead of serving the images directly to the consumer, they decide
+they will set up an api server royaltyfreemedia, and they make it so that the
+`access-control-allow-origin` is set to `*`, which is the wildcard operator.
+This makes it so that users can request content from royaltyfreemedia through
+javascript even though they are currently on the royaltyfreemedia website.
+
+### Express Middleware
+
+A very common use case is to have middleware in a server that handles logic
+such as logging request and handles token authentication. Adding middleware in
+express is done through the `use` method.
+
+```js
+const express = require('express')
+const server = express()
+
+server.use((req, res, next) => {
+    // Middleware logic here
+})
+```
